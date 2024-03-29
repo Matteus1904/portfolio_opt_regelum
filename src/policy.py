@@ -84,10 +84,10 @@ def vpg_objective(
 class JointPolicyVPG(Policy):
     def __init__(
         self,
-        pedestrian_model: PerceptronWithTruncatedNormalNoise,
-        chauffeur_model: PerceptronWithTruncatedNormalNoise,
-        pedestrian_critic: Critic,
-        chauffeur_critic: Critic,
+        portfolio_model: PerceptronWithTruncatedNormalNoise,
+        market_model: PerceptronWithTruncatedNormalNoise,
+        portfolio_critic: Critic,
+        market_critic: Critic,
         system: ComposedSystem,
         is_normalize_advantages: bool = True,
         gae_lambda: float = 0.95,
@@ -119,29 +119,29 @@ class JointPolicyVPG(Policy):
         )
         self.is_normalize_advantages = is_normalize_advantages
         self.gae_lambda = gae_lambda
-        self.pedestrian_model = pedestrian_model
-        self.chauffeur_model = chauffeur_model
-        self.model_to_optimize = self.pedestrian_model
+        self.portfolio_model = portfolio_model
+        self.market_model = market_model
+        self.model_to_optimize = self.portfolio_model
 
-        self.pedestrian_critic = pedestrian_critic
-        self.chauffeur_critic = chauffeur_critic
-        self.current_critic = self.pedestrian_critic
+        self.portfolio_critic = portfolio_critic
+        self.market_critic = market_critic
+        self.current_critic = self.portfolio_critic
         self.N_episodes = N_episodes
         self.sampling_time = sampling_time
 
         ## Define an optimization problem here
 
-        self.pedestrian_model_weigths = self.create_variable(
-            name="pedestrian_model_weights", like=self.pedestrian_model.named_parameters
+        self.portfolio_model_weigths = self.create_variable(
+            name="portfolio_model_weights", like=self.portfolio_model.named_parameters
         )
-        self.pedestrian_model_weigths.register_hook(freeze_stds)
+        self.portfolio_model_weigths.register_hook(freeze_stds)
 
-        self.chauffeur_model_weights = self.create_variable(
-            name="chauffeur_model_weights",
-            like=self.chauffeur_model.named_parameters,
+        self.market_model_weights = self.create_variable(
+            name="market_model_weights",
+            like=self.market_model.named_parameters,
             is_constant=True,
         )
-        self.chauffeur_model_weights.register_hook(freeze_stds)
+        self.market_model_weights.register_hook(freeze_stds)
 
         self.objective_inputs = [
             self.create_variable(name=variable_name, is_constant=True)
@@ -154,24 +154,24 @@ class JointPolicyVPG(Policy):
     def switch_critic(self):
         # This method will be triggered from Scenario
         self.current_critic = (
-            self.pedestrian_critic
-            if self.current_critic is self.chauffeur_critic
-            else self.chauffeur_critic
+            self.portfolio_critic
+            if self.current_critic is self.market_critic
+            else self.market_critic
         )
 
     def switch_model_to_optimize(self):
         # This method will be triggered from Scenario
         self.model_to_optimize = (
-            self.pedestrian_model
-            if self.model_to_optimize is self.chauffeur_model
-            else self.chauffeur_model
+            self.portfolio_model
+            if self.model_to_optimize is self.market_model
+            else self.market_model
         )
         return self.model_to_optimize
 
     def action_col_idx(self):
         return (
             slice(0, self.system.sys_left.dim_inputs)
-            if self.model_to_optimize is self.pedestrian_model
+            if self.model_to_optimize is self.portfolio_model
             else slice(self.system.sys_right.dim_inputs, None)
         )
 
@@ -202,9 +202,9 @@ class JointPolicyVPG(Policy):
         )
 
     def get_action(self, observation: np.array) -> np.array:
-        action_pedestrian = self.pedestrian_model(th.FloatTensor(observation))
-        action_chauffeur = self.chauffeur_model(th.FloatTensor(observation))
-        action = rg.hstack((action_pedestrian, action_chauffeur)).detach().cpu().numpy()
+        action_portfolio = self.portfolio_model(th.FloatTensor(observation))
+        action_market = self.market_model(th.FloatTensor(observation))
+        action = rg.hstack((action_portfolio, action_market)).detach().cpu().numpy()
         return action  # Concatenate actions in order to pass them as a whole into Scenario at runtime
 
     def data_buffer_objective_keys(self):

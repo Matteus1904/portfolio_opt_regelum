@@ -15,7 +15,7 @@ class SwitchAgentCallback(Callback):
     def on_function_call(self, obj: GameScenario, method, output):
         self.log(
             "Optimizing agent switched to"
-            f" {'pedestrian' if output[1] == 'pedestrian_model_weights' else 'chauffeur'} "
+            f" {'portfolio' if output[1] == 'portfolio_model_weights' else 'market'} "
             f"after iterartion: {obj.iteration_counter}"
         )
 
@@ -33,10 +33,10 @@ class DoubleAgentStepLogger(HistoricalCallback):
             {
                 **{
                     "time": output["time"],
-                    "running_objective_pedestrian": obj.pedestrian_running_objective(
+                    "running_objective_portfolio": obj.portfolio_running_objective(
                         output["estimated_state"], output["action"]
                     ),
-                    "running_objective_chauffeur": obj.chauffeur_running_objective(
+                    "running_objective_market": obj.market_running_objective(
                         output["estimated_state"], output["action"]
                     ),
                     "episode_id": output["episode_id"],
@@ -53,8 +53,8 @@ class WhichOptimizeCallback(Callback):
 
     def on_function_call(self, obj: JointPolicyVPG, method, output):
         which = (
-            "pedestrian"
-            if obj.chauffeur_model_weights.is_constant
-            else "chauffeur_model"
+            "portfolio"
+            if obj.market_model_weights.is_constant
+            else "market_model"
         )
         self.log(f"A {which} policy updated...")
