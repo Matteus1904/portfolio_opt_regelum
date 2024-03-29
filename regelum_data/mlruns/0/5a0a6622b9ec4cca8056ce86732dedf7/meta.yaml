@@ -1,0 +1,15 @@
+artifact_uri: file:///home/matvey/portfolio_opt_regelum/regelum_data/mlruns/0/5a0a6622b9ec4cca8056ce86732dedf7/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5a0a6622b9ec4cca8056ce86732dedf7
+run_name: 2024-03-29 15-56-38 0
+run_uuid: 5a0a6622b9ec4cca8056ce86732dedf7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1711717013234
+status: 1
+tags: []
+user_id: matvey

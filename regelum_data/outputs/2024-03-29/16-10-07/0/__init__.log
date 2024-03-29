@@ -1,0 +1,37 @@
+[2024-03-29 16:10:10,403][regelum][INFO] - Saved summary to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/SUMMARY.html. (184ms)
+[2024-03-29 16:10:12,090][regelum][INFO] - Completed episode 1/3 (33.3%). Iteration: 1/5.
+[2024-03-29 16:10:12,091][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:13,818][regelum][INFO] - Completed episode 2/3 (66.7%). Iteration: 1/5.
+[2024-03-29 16:10:13,819][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:15,413][regelum][INFO] - Completed episode 3/3 (100.0%). Iteration: 1/5.
+[2024-03-29 16:10:15,415][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:16,157][regelum][INFO] - A pedestrian policy updated...
+[2024-03-29 16:10:17,774][regelum][INFO] - Completed episode 1/3 (33.3%). Iteration: 2/5. Estimated remaining time: 0:00:20.
+[2024-03-29 16:10:17,776][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:19,364][regelum][INFO] - Completed episode 2/3 (66.7%). Iteration: 2/5. Estimated remaining time: 0:00:18.
+[2024-03-29 16:10:19,365][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:20,981][regelum][INFO] - Completed episode 3/3 (100.0%). Iteration: 2/5. Estimated remaining time: 0:00:16.
+[2024-03-29 16:10:20,982][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:20,992][regelum][INFO] - A pedestrian policy updated...
+[2024-03-29 16:10:22,670][regelum][INFO] - Completed episode 1/3 (33.3%). Iteration: 3/5. Estimated remaining time: 0:00:14.
+[2024-03-29 16:10:22,672][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:24,327][regelum][INFO] - Completed episode 2/3 (66.7%). Iteration: 3/5. Estimated remaining time: 0:00:12.
+[2024-03-29 16:10:24,329][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:25,927][regelum][INFO] - Completed episode 3/3 (100.0%). Iteration: 3/5. Estimated remaining time: 0:00:10.
+[2024-03-29 16:10:25,928][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:25,940][regelum][INFO] - A pedestrian policy updated...
+[2024-03-29 16:10:27,845][regelum][INFO] - Completed episode 1/3 (33.3%). Iteration: 4/5. Estimated remaining time: 0:00:08.
+[2024-03-29 16:10:27,847][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:29,513][regelum][INFO] - Completed episode 2/3 (66.7%). Iteration: 4/5. Estimated remaining time: 0:00:06.
+[2024-03-29 16:10:29,515][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:31,217][regelum][INFO] - Completed episode 3/3 (100.0%). Iteration: 4/5. Estimated remaining time: 0:00:05.
+[2024-03-29 16:10:31,219][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:31,229][regelum][INFO] - A pedestrian policy updated...
+[2024-03-29 16:10:33,064][regelum][INFO] - Completed episode 1/3 (33.3%). Iteration: 5/5. Estimated remaining time: 0:00:03.
+[2024-03-29 16:10:33,066][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:34,772][regelum][INFO] - Completed episode 2/3 (66.7%). Iteration: 5/5. Estimated remaining time: 0:00:01.
+[2024-03-29 16:10:34,774][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:36,523][regelum][INFO] - Completed episode 3/3 (100.0%). Iteration: 5/5. Estimated remaining time: 0:00:00.
+[2024-03-29 16:10:36,524][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-10-07/0/callbacks.dill. (0ms)
+[2024-03-29 16:10:36,534][regelum][INFO] - A pedestrian policy updated...
+[2024-03-29 16:10:36,545][regelum][INFO] - Script terminated successfully.

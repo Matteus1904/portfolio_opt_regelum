@@ -1,0 +1,326 @@
+rehydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${oc.env:REGELUM_DATA_DIR}/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${rehydra.job.num}
+  launcher:
+    _target_: rehydra_plugins.rehydra_joblib_launcher.joblib_launcher.JoblibLauncher
+    n_jobs: -1
+    backend: null
+    prefer: processes
+    require: null
+    verbose: 0
+    timeout: null
+    pre_dispatch: 2*n_jobs
+    batch_size: auto
+    temp_folder: null
+    max_nbytes: null
+    mmap_mode: r
+  sweeper:
+    _target_: rehydra._internal.core_plugins.basic_sweeper.BasicSweeper
+    max_batch_size: null
+    params: null
+  help:
+    app_name: ${rehydra.job.name}
+    header: '${rehydra.help.app_name} is powered by Rehydra.
+
+      '
+    footer: 'Powered by Rehydra (https://rehydra.cc)
+
+      Use --rehydra-help to view Rehydra specific help
+
+      '
+    template: '${rehydra.help.header}
+
+      == Configuration groups ==
+
+      Compose your configuration from those groups (group=option)
+
+
+      $APP_CONFIG_GROUPS
+
+
+      == Config ==
+
+      Override anything in the config (foo.bar=value)
+
+
+      $CONFIG
+
+
+      ${rehydra.help.footer}
+
+      '
+  rehydra_help:
+    template: 'Rehydra (${rehydra.runtime.version})
+
+      See https://rehydra.cc for more info.
+
+
+      == Flags ==
+
+      $FLAGS_HELP
+
+
+      == Configuration groups ==
+
+      Compose your configuration from those groups (For example, append rehydra/job_logging=disabled
+      to command line)
+
+
+      $REHYDRA_CONFIG_GROUPS
+
+
+      Use ''--cfg rehydra'' to Show the Rehydra config.
+
+      '
+    rehydra_help: ???
+  rehydra_logging:
+    version: 1
+    formatters:
+      simple:
+        format: '[%(asctime)s][REHYDRA] %(message)s'
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+    root:
+      level: INFO
+      handlers:
+      - console
+    loggers:
+      logging_example:
+        level: DEBUG
+    disable_existing_loggers: false
+  job_logging:
+    version: 1
+    formatters:
+      simple:
+        format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+      file:
+        class: logging.FileHandler
+        formatter: simple
+        filename: ${rehydra.runtime.output_dir}/${rehydra.job.name}.log
+    root:
+      level: INFO
+      handlers:
+      - console
+      - file
+    disable_existing_loggers: false
+  env: {}
+  defaults:
+  - output: default
+  - launcher: basic
+  - sweeper: basic
+  - help: default
+  - rehydra_help: default
+  - rehydra_logging: default
+  - job_logging: default
+  - callbacks: null
+  - env: default
+  mode: MULTIRUN
+  searchpath: []
+  callbacks: {}
+  output_subdir: .rehydra
+  overrides:
+    rehydra:
+    - rehydra/launcher=joblib
+    - rehydra.job.chdir=True
+    - rehydra.mode=MULTIRUN
+    task: []
+  job:
+    name: __init__
+    chdir: true
+    override_dirname: ''
+    id: ???
+    num: ???
+    config_name: main
+    env_set: {}
+    env_copy: []
+    config:
+      override_dirname:
+        kv_sep: '='
+        item_sep: ','
+        exclude_keys: []
+  runtime:
+    version: 1.3.5
+    version_base: '1.3'
+    cwd: /home/matvey/portfolio_opt_regelum
+    config_sources:
+    - path: rehydra.conf
+      schema: pkg
+      provider: rehydra
+    - path: /home/matvey/portfolio_opt_regelum/presets
+      schema: file
+      provider: main
+    - path: ''
+      schema: structured
+      provider: schema
+    output_dir: ???
+    choices:
+      chauffeur_critic: chauffeur_critic
+      pedestrian_critic: pedestrian_critic
+      common: common
+      scenario: scenario
+      simulator: simulator
+      policy: joint_policy_vpg
+      system: homicidal_chauffeur_system
+      rehydra/env: default
+      rehydra/callbacks: null
+      rehydra/job_logging: default
+      rehydra/rehydra_logging: default
+      rehydra/rehydra_help: default
+      rehydra/help: default
+      rehydra/sweeper: basic
+      rehydra/launcher: joblib
+      rehydra/output: default
+  verbose: false
+system:
+  _target_: src.system.ComposedSystem
+  sys_left:
+    _target_: src.system.Portfolio
+    dim_state: ${common.number_of_stocks}
+    action_bounds: ${common.action_bounds_left}
+  sys_right:
+    _target_: src.system.MarketAttack
+    dim_state: ${common.number_of_stocks}
+    action_bounds: ${common.action_bounds_right}
+  output_mode: both
+  io_mapping: ${get:\[\]}
+policy:
+  _target_: src.policy.JointPolicyVPG
+  pedestrian_model:
+    _target_: regelum.model.PerceptronWithTruncatedNormalNoise
+    dim_input: ${get:${common.number_of_stocks} * 2}
+    dim_output: ${common.number_of_stocks}
+    dim_hidden: 40
+    n_hidden_layers: 3
+    hidden_activation:
+      _target_: torch.nn.Tanh
+    output_bounds: ${common.action_bounds_left}
+    is_truncated_to_output_bounds: True\,
+    output_activation:
+      _target_: regelum.model.MultiplyByConstant
+      constant: 0.1
+    stds: ${get:\[0.05\]*\(${common.number_of_stocks}\)}
+  chauffeur_model:
+    _target_: regelum.model.PerceptronWithTruncatedNormalNoise
+    dim_input: ${get:${common.number_of_stocks} * 2}
+    dim_output: ${get:${common.number_of_stocks} * \( ${common.number_of_stocks} +
+      3 \) // 2}
+    dim_hidden: 40
+    n_hidden_layers: 3
+    hidden_activation:
+      _target_: torch.nn.Tanh
+    output_bounds: ${common.action_bounds_right}
+    is_truncated_to_output_bounds: True\,
+    output_activation:
+      _target_: regelum.model.MultiplyByConstant
+      constant: 0.1
+    stds: ${get:\[0.05\]*\( ${common.number_of_stocks} * \( ${common.number_of_stocks}
+      + 3 \) // 2 \)}
+  pedestrian_critic: ${same:pedestrian_critic}
+  chauffeur_critic: ${same:chauffeur_critic}
+  system: ${same:system}
+  is_normalize_advantages: true
+  gae_lambda: 0.95
+  N_episodes: 3
+  sampling_time: ${common.sampling_time}
+simulator:
+  _target_: src.simulator.Simulator
+  system: ${same:system}
+  state_init: ${get:regelum.utils.rg.array\(\[1.0\]*\(${common.number_of_stocks}*2\)\).reshape\(1\,
+    -1\)}
+  time_final: 7
+  max_step: ${common.sampling_time}
+scenario:
+  _target_: src.scenario.GameScenario
+  policy: ${same:policy}
+  pedestrian_critic: ${same:pedestrian_critic}
+  chauffeur_critic: ${same:chauffeur_critic}
+  simulator: ${same:simulator}
+  pedestrian_running_objective_model:
+    _target_: src.objective.PedestrianRunningObjectiveModel
+    weights: ${get:regelum.utils.rg.array\(\[10\]* \(${common.number_of_stocks} *
+      \( ${common.number_of_stocks} + 5 \) // 2  + 1\)\)}
+  chauffeur_running_objective_model:
+    _target_: src.objective.ChauffeurRunningObjectiveModel
+    weights: ${get:regelum.utils.rg.array\(\[10\]* \(${common.number_of_stocks} *
+      \( ${common.number_of_stocks} + 5 \) // 2  + 1\)\)}
+  discount_factor: ${common.discount_factor}
+  sampling_time: ${common.sampling_time}
+  N_iterations: 5
+  iters_to_switch_opt_agent: 10
+common:
+  sampling_time: 0.05
+  number_of_stocks: 4
+  discount_factor: 0.95
+  action_bounds_left: ${get:\[\[-1\, 1\]\]*${common.number_of_stocks}}
+  action_bounds_right: ${get:\[\[0.05\, 0.1\]\]* \(${common.number_of_stocks} * \(
+    ${common.number_of_stocks} + 3 \) // 2\)}
+pedestrian_critic:
+  _target_: src.critic.Critic
+  system_dim_observation: ${common.number_of_stocks}
+  system_dim_inputs: ${common.number_of_stocks}
+  model:
+    _target_: regelum.model.ModelPerceptron
+    dim_input: ${get:${common.number_of_stocks} * 2}
+    dim_output: 1
+    dim_hidden: 40
+    n_hidden_layers: 3
+    hidden_activation:
+      _target_: torch.nn.Tanh
+  td_n: 2
+  is_value_function: true
+  is_on_policy: true
+  optimizer_config:
+    _target_: regelum.optimizable.core.configs.TorchOptimizerConfig
+    n_epochs: 20
+    data_buffer_iter_bathes_kwargs:
+      batch_sampler: regelum.data_buffers.batch_sampler.RollingBatchSampler
+      dtype: torch.FloatTensor
+      mode: full
+      n_batches: 1
+      device: cpu
+    opt_method_kwargs:
+      lr: 0.001
+  discount_factor: ${common.discount_factor}
+chauffeur_critic:
+  _target_: src.critic.Critic
+  system_dim_observation: ${common.number_of_stocks}
+  system_dim_inputs: ${get:${common.number_of_stocks} * \( ${common.number_of_stocks}
+    + 3 \) // 2}
+  model:
+    _target_: regelum.model.ModelPerceptron
+    dim_input: ${get:${common.number_of_stocks} *2}
+    dim_output: 1
+    dim_hidden: 40
+    n_hidden_layers: 3
+    hidden_activation:
+      _target_: torch.nn.Tanh
+  td_n: 2
+  is_value_function: true
+  is_on_policy: true
+  optimizer_config:
+    _target_: regelum.optimizable.core.configs.TorchOptimizerConfig
+    n_epochs: 20
+    data_buffer_iter_bathes_kwargs:
+      batch_sampler: regelum.data_buffers.batch_sampler.RollingBatchSampler
+      dtype: torch.FloatTensor
+      mode: full
+      n_batches: 1
+      device: cpu
+    opt_method_kwargs:
+      lr: 0.001
+  discount_factor: ${common.discount_factor}
+callbacks:
+- src.callback.SwitchAgentCallback
+- src.callback.DoubleAgentStepLogger
+- src.callback.WhichOptimizeCallback

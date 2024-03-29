@@ -1,0 +1,38 @@
+_target_: src.policy.JointPolicyVPG
+
+# Define below the constructor kwargs
+pedestrian_model:
+  _target_: regelum.model.PerceptronWithTruncatedNormalNoise
+  dim_input: = ${common.number_of_stocks} * 2 + 1
+  dim_output: $ common.number_of_stocks
+  dim_hidden: 40
+  n_hidden_layers: 3
+  hidden_activation: 
+    _target_: torch.nn.Tanh
+  output_bounds: $ common.action_bounds_left
+  is_truncated_to_output_bounds: True,
+  output_activation: 
+    _target_: regelum.model.MultiplyByConstant
+    constant: 0.1
+  stds: = [0.05]*(${common.number_of_stocks})
+chauffeur_model:
+  _target_: regelum.model.PerceptronWithTruncatedNormalNoise
+  dim_input: = ${common.number_of_stocks} * 2 + 1
+  dim_output: =  ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2
+  dim_hidden: 40
+  n_hidden_layers: 3
+  hidden_activation: 
+    _target_: torch.nn.Tanh
+  output_bounds: $ common.action_bounds_right
+  is_truncated_to_output_bounds: True,
+  output_activation: 
+    _target_: regelum.model.MultiplyByConstant
+    constant: 0.1
+  stds: = [0.05]*( ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2 )
+pedestrian_critic: ~ pedestrian_critic
+chauffeur_critic: ~ chauffeur_critic
+system: ~ system
+is_normalize_advantages: True
+gae_lambda: 0.95
+N_episodes: 3
+sampling_time: $ common.sampling_time

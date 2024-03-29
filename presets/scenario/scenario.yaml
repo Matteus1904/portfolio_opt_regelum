@@ -1,0 +1,26 @@
+_target_: src.scenario.GameScenario
+
+policy: ~ policy
+pedestrian_critic: ~ pedestrian_critic
+chauffeur_critic: ~ chauffeur_critic
+simulator: ~ simulator
+pedestrian_running_objective_model: 
+  _target_: src.objective.PedestrianRunningObjectiveModel
+  weights: = regelum.utils.rg.array([10]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2  + 1))
+chauffeur_running_objective_model:
+  _target_: src.objective.ChauffeurRunningObjectiveModel
+  weights: = regelum.utils.rg.array([10]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2  + 1))
+discount_factor: $ common.discount_factor
+sampling_time: $ common.sampling_time
+N_iterations: 5
+iters_to_switch_opt_agent: 10
+
+
+
+
+
+
+
+
+
+

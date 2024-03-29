@@ -1,0 +1,26 @@
+# This is the main preset file for the project
+# Here we define the presets we want to use
+
+defaults:
+  - system: homicidal_chauffeur_system
+  - policy: joint_policy_vpg
+  - simulator: simulator
+  - scenario: scenario
+  - common: common
+  - pedestrian_critic: pedestrian_critic
+  - chauffeur_critic: chauffeur_critic
+
+# below we can define our callbacks we want to use in 
+# our agent environment loop
+callbacks:
+  - src.callback.SwitchAgentCallback
+  - src.callback.DoubleAgentStepLogger
+  - src.callback.WhichOptimizeCallback
+
+
+# let us define the outputs folder for our runs
+rehydra:
+  sweep:
+    dir: ${oc.env:REGELUM_DATA_DIR}/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+

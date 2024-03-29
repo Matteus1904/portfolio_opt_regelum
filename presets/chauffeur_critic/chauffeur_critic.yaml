@@ -1,0 +1,28 @@
+_target_: src.critic.Critic
+
+# Define below the constructor kwargs
+system_dim_observation: $ common.number_of_stocks
+system_dim_inputs: = ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2
+model:
+  _target_: regelum.model.ModelPerceptron
+  dim_input: = ${common.number_of_stocks} *2 +1
+  dim_output: 1
+  dim_hidden: 40
+  n_hidden_layers: 3
+  hidden_activation:
+    _target_: torch.nn.Tanh
+td_n: 2
+is_value_function: True
+is_on_policy: True
+optimizer_config:
+  _target_: regelum.optimizable.core.configs.TorchOptimizerConfig
+  n_epochs: 20
+  data_buffer_iter_bathes_kwargs:
+    batch_sampler: regelum.data_buffers.batch_sampler.RollingBatchSampler
+    dtype: torch.FloatTensor
+    mode: "full"
+    n_batches: 1
+    device: "cpu"
+  opt_method_kwargs:
+    lr: 0.001 
+discount_factor: $ common.discount_factor

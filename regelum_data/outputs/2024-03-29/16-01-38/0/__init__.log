@@ -1,0 +1,30 @@
+[2024-03-29 16:01:41,317][regelum][INFO] - Saved summary to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-01-38/0/SUMMARY.html. (179ms)
+[2024-03-29 16:01:41,881][regelum][INFO] - Script terminated with error.
+[2024-03-29 16:01:41,883][regelum][ERROR] - could not broadcast input array from shape (4,1) into shape (4,)
+Traceback (most recent call last):
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/__init__.py", line 947, in app
+    res = old_app(ccfg)
+  File "/home/matvey/portfolio_opt_regelum/run.py", line 6, in launch
+    scenario.run()  # run it
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/scenario.py", line 473, in run
+    return super().run()
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/scenario.py", line 140, in run
+    self.run_episode(
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/scenario.py", line 410, in run_episode
+    super().run_episode(
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/scenario.py", line 156, in run_episode
+    self.sim_status = self.step()
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/scenario.py", line 196, in step
+    self.is_episode_ended = self.simulator.do_sim_step() == -1
+  File "/home/matvey/portfolio_opt_regelum/src/simulator.py", line 11, in do_sim_step
+    self.system.compute_state_dynamics(time = None, state = rg.array(self.state), inputs=rg.array(self.system.inputs))
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/system.py", line 161, in compute_state_dynamics
+    self._compute_state_dynamics(
+  File "/home/matvey/portfolio_opt_regelum/src/system.py", line 112, in _compute_state_dynamics
+    self.sys_left.compute_state_dynamics(
+  File "/home/matvey/.pyenv/versions/3.9.16/envs/regelum/lib/python3.9/site-packages/regelum/system.py", line 166, in compute_state_dynamics
+    return self._compute_state_dynamics(time, state, inputs)
+  File "/home/matvey/portfolio_opt_regelum/src/system.py", line 196, in _compute_state_dynamics
+    Dstate[1:] = inputs
+ValueError: could not broadcast input array from shape (4,1) into shape (4,)
+[2024-03-29 16:01:41,906][regelum][INFO] - Saved callbacks to /home/matvey/portfolio_opt_regelum/regelum_data/outputs/2024-03-29/16-01-38/0/callbacks.dill. (0ms)
