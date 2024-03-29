@@ -3,7 +3,7 @@ from regelum.model import (
 )
 from regelum.utils import rg
 
-class PedestrianRunningObjectiveModel(ModelQuadLin):
+class PortfolioRunningObjectiveModel(ModelQuadLin):
     def __init__(self, weights=rg.array([10])):
         super().__init__(
             quad_matrix_type="diagonal",
@@ -22,7 +22,7 @@ class PedestrianRunningObjectiveModel(ModelQuadLin):
         return super().__call__(total_revenue, action, **kwargs)
 
 
-class ChauffeurRunningObjectiveModel(ModelQuadLin):
+class MarketRunningObjectiveModel(ModelQuadLin):
     def __init__(self, weights=rg.array([10])):
         super().__init__(
             quad_matrix_type="diagonal",

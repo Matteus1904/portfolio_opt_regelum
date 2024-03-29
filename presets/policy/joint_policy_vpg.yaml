@@ -1,7 +1,7 @@
 _target_: src.policy.JointPolicyVPG
 
 # Define below the constructor kwargs
-pedestrian_model:
+portfolio_model:
   _target_: regelum.model.PerceptronWithTruncatedNormalNoise
   dim_input: = ${common.number_of_stocks} * 2 + 1
   dim_output: $ common.number_of_stocks
@@ -15,7 +15,7 @@ pedestrian_model:
     _target_: regelum.model.MultiplyByConstant
     constant: 0.1
   stds: = [0.05]*(${common.number_of_stocks})
-chauffeur_model:
+market_model:
   _target_: regelum.model.PerceptronWithTruncatedNormalNoise
   dim_input: = ${common.number_of_stocks} * 2 + 1
   dim_output: =  ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2
@@ -29,8 +29,8 @@ chauffeur_model:
     _target_: regelum.model.MultiplyByConstant
     constant: 0.1
   stds: = [0.05]*( ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2 )
-pedestrian_critic: ~ pedestrian_critic
-chauffeur_critic: ~ chauffeur_critic
+portfolio_critic: ~ portfolio_critic
+market_critic: ~ market_critic
 system: ~ system
 is_normalize_advantages: True
 gae_lambda: 0.95

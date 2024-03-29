@@ -2,13 +2,13 @@
 # Here we define the presets we want to use
 
 defaults:
-  - system: homicidal_chauffeur_system
+  - system: portfolio_market_system
   - policy: joint_policy_vpg
   - simulator: simulator
   - scenario: scenario
   - common: common
-  - pedestrian_critic: pedestrian_critic
-  - chauffeur_critic: chauffeur_critic
+  - portfolio_critic: portfolio_critic
+  - market_critic: market_critic
 
 # below we can define our callbacks we want to use in 
 # our agent environment loop
@@ -16,6 +16,7 @@ callbacks:
   - src.callback.SwitchAgentCallback
   - src.callback.DoubleAgentStepLogger
   - src.callback.WhichOptimizeCallback
+  - regelum.callback.HistoricalDataCallback
 
 
 # let us define the outputs folder for our runs
