@@ -6,14 +6,14 @@ market_critic: ~ market_critic
 simulator: ~ simulator
 portfolio_running_objective_model: 
   _target_: src.objective.PortfolioRunningObjectiveModel
-  weights: = regelum.utils.rg.array([10]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2  + 1))
+  weights: = regelum.utils.rg.array([10] + [0]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2 ))
 market_running_objective_model:
   _target_: src.objective.MarketRunningObjectiveModel
-  weights: = regelum.utils.rg.array([10]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2  + 1))
+  weights: = regelum.utils.rg.array([10] + [0]* (${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2 ))
 discount_factor: $ common.discount_factor
 sampling_time: $ common.sampling_time
-N_iterations: 5
-iters_to_switch_opt_agent: 10
+N_iterations: 50
+iters_to_switch_opt_agent: 5
 
 
 
