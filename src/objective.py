@@ -17,9 +17,9 @@ class PortfolioRunningObjectiveModel(ModelQuadLin):
         cash = observation[0]
         volume = observation[1:number_of_stocks+1]
         prices = observation[number_of_stocks+1:]
-        total_revenue = rg.array([[sum(volume*prices) + cash]])
+        total_revenue = rg.array([[volume.T@prices + cash]])
         action = argin[1]
-        return super().__call__(total_revenue, action, **kwargs)
+        return super().__call__(-total_revenue, action, **kwargs)
 
 
 class MarketRunningObjectiveModel(ModelQuadLin):
@@ -35,6 +35,6 @@ class MarketRunningObjectiveModel(ModelQuadLin):
         cash = observation[0]
         volume = observation[1:number_of_stocks+1]
         prices = observation[number_of_stocks+1:]
-        total_revenue = rg.array([[sum(volume*prices) + cash]])
+        total_revenue = rg.array([[volume.T@prices + cash]])
         action = argin[1]
-        return super().__call__(-total_revenue, action, **kwargs)
+        return super().__call__(total_revenue, action, **kwargs)

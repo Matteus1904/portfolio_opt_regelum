@@ -46,7 +46,7 @@ class GameScenario(RLScenario):
             sampling_time=sampling_time,
             N_episodes=policy.N_episodes,
             N_iterations=N_iterations,
-            is_critic_first=True,
+            is_critic_first=True
         )
         self.policy: JointPolicyVPG
 

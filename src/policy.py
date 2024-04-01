@@ -172,7 +172,7 @@ class JointPolicyVPG(Policy):
         return (
             slice(0, self.system.sys_left.dim_inputs)
             if self.model_to_optimize is self.portfolio_model
-            else slice(self.system.sys_right.dim_inputs, None)
+            else slice(self.system.sys_left.dim_inputs, None)
         )
 
     def objective_function(

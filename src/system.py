@@ -179,7 +179,7 @@ class Portfolio(System):
         prices = state[1]
         volumes = state[0] 
         Dstate = rg.zeros(self.dim_state, prototype=(state, inputs))
-        Dstate[0] = prices.T @ inputs
+        Dstate[0] = - prices.T @ inputs
         Dstate[1:] = inputs.reshape(1, -1)
         return Dstate
     
@@ -195,7 +195,7 @@ class MarketAttack(System):
         self._dim_inputs = 2*dim_state + dim_state*(dim_state-1)//2
         self._dim_observation = dim_state
         if action_bounds is None:
-            self._action_bounds = [[0.05, 0.1]]*self._dim_inputs
+            self._action_bounds = [[-0.05, 0.05]]*self._dim_inputs
         else:
             self._action_bounds = action_bounds
         self._observation_naming = self._state_naming = [f'price_{i} [USD]' for i in range(dim_state)]
@@ -225,7 +225,7 @@ class MarketAttack(System):
         choleskyMatrix = np.linalg.cholesky(corr_matrix)
         cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.dim_state)))
 
-        Dstate = rg.array(drifts * (self._step_size)*prices + variances*rg.sqrt(self._step_size)*drifts*prices*cX)
+        Dstate = rg.array(drifts * (self._step_size)*prices + variances*rg.sqrt(self._step_size)*prices*cX)
 
         return Dstate
     
