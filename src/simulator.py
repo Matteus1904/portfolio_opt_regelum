@@ -9,10 +9,12 @@ class Simulator(Simulator):
                 self.state_init = self.state_init.copy()
                 self.system._step_size = self.max_step
                 self.state += (
-                    self.system.compute_state_dynamics(time = None, state = rg.array(self.state), inputs=rg.array(self.system.inputs))
+                    self.system.compute_state_dynamics(time = None, state = self.state, inputs=self.system.inputs)
+                )
+                self.observation = self.get_observation(
+                    time=self.time, state=self.state, inputs=self.system.inputs
                 )
                 self.time += self.max_step
-                self.observation = self.state
             else:
                 self.reset()
                 return -1

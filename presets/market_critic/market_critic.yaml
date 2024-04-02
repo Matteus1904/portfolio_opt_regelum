@@ -1,11 +1,11 @@
 _target_: src.critic.Critic
 
 # Define below the constructor kwargs
-system_dim_observation: $ common.number_of_stocks
+system_dim_observation: = ${common.number_of_stocks}
 system_dim_inputs: = ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2
 model:
   _target_: regelum.model.ModelPerceptron
-  dim_input: = ${common.number_of_stocks} *2 +1
+  dim_input: = ${common.number_of_stocks} *2 + 1
   dim_output: 1
   dim_hidden: 40
   n_hidden_layers: 3

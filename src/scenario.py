@@ -10,6 +10,8 @@ from regelum.event import Event
 
 from .objective import PortfolioRunningObjectiveModel, MarketRunningObjectiveModel
 from .policy import JointPolicyVPG
+import numpy as np
+
 
 
 class GameScenario(RLScenario):
@@ -63,7 +65,7 @@ class GameScenario(RLScenario):
             if self.critic is self.market_critic
             else self.market_critic
         )
-
+    
     @apply_callbacks()
     def compute_action_sampled(self, time, estimated_state, observation):
         return super().compute_action_sampled(time, estimated_state, observation)
@@ -87,3 +89,37 @@ class GameScenario(RLScenario):
         super().reset_iteration()
         if self.iteration_counter % self.iters_to_switch_opt_agent == 0:
             self.switch_optimizing_agent()
+
+
+    def on_action_issued(self, observation):
+        self.current_running_objective = self.running_objective(
+            self.state, self.get_action_from_policy()
+        )
+        self.value = self.calculate_value(self.current_running_objective, self.time)
+        observation_action = np.concatenate(
+            (observation, self.get_action_from_policy()), axis=1
+        )
+        received_data =  {
+            "action": self.get_action_from_policy(),
+            "running_objective": self.current_running_objective,
+            "current_value": self.value,
+            "observation_action": observation_action,
+        }
+        self.data_buffer.push_to_end(**received_data)
+        return received_data
+
+
+    @apply_callbacks()
+    def post_compute_action(self, observation, estimated_state):
+        return {
+            "estimated_state": estimated_state,
+            "observation": observation,
+            "time": self.time,
+            "episode_id": self.episode_counter,
+            "iteration_id": self.iteration_counter,
+            "step_id": self.step_counter,
+            "action": self.get_action_from_policy(),
+            "running_objective": self.current_running_objective,
+            "current_value": self.value,
+            "state": self.state
+        }

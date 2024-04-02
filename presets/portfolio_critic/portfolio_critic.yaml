@@ -1,7 +1,7 @@
 _target_: src.critic.Critic
 
 # Define below the constructor kwargs
-system_dim_observation: $ common.number_of_stocks
+system_dim_observation: = ${common.number_of_stocks} + 1
 system_dim_inputs: $ common.number_of_stocks
 model:
   _target_: regelum.model.ModelPerceptron

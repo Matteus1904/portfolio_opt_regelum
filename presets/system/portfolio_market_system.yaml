@@ -2,11 +2,11 @@ _target_: src.system.ComposedSystem
 
 sys_left: 
   _target_: src.system.Portfolio
-  dim_state:  = ${common.number_of_stocks} + 1
+  dim_state:  = ${common.number_of_stocks} *2 + 3
   action_bounds: $ common.action_bounds_left
 sys_right:
   _target_: src.system.MarketAttack
-  dim_state: $ common.number_of_stocks
+  dim_state:  = ${common.number_of_stocks} *2
   action_bounds: $ common.action_bounds_right
 output_mode: "both"
 io_mapping: = []
