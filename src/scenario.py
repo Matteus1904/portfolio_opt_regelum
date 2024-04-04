@@ -10,6 +10,9 @@ from regelum.event import Event
 
 from .objective import PortfolioRunningObjectiveModel, MarketRunningObjectiveModel
 from .policy import JointPolicyVPG
+import numpy as np
+from copy import deepcopy
+
 
 
 class GameScenario(RLScenario):
@@ -26,6 +29,8 @@ class GameScenario(RLScenario):
         N_iterations: int = 200,
         iters_to_switch_opt_agent: int = 1,
     ):
+        self.portfolio_running_objective_model = portfolio_running_objective_model
+        self.market_running_objective_model = market_running_objective_model
         self.portfolio_running_objective = RunningObjective(
             model=portfolio_running_objective_model
         )
@@ -42,6 +47,7 @@ class GameScenario(RLScenario):
             running_objective=self.portfolio_running_objective,
             simulator=simulator,
             policy_optimization_event=Event.reset_iteration,
+            critic_optimization_event=Event.reset_iteration,
             discount_factor=discount_factor,
             sampling_time=sampling_time,
             N_episodes=policy.N_episodes,
@@ -50,6 +56,25 @@ class GameScenario(RLScenario):
         )
         self.policy: JointPolicyVPG
 
+    def instantiate_rl_scenarios(self):
+        simulators = [deepcopy(self.simulator) for _ in range(self.N_episodes)]
+        scenarios = [
+            GameScenario(
+                policy=self.policy,
+                portfolio_critic=self.portfolio_critic,
+                market_critic=self.market_critic,
+                simulator=simulators[i],
+                discount_factor=self.discount_factor,
+                sampling_time=self.sampling_time,
+                N_iterations=self.N_iterations,
+                iters_to_switch_opt_agent = self.iters_to_switch_opt_agent,
+                portfolio_running_objective_model = self.portfolio_running_objective_model,
+                market_running_objective_model = self.market_running_objective_model
+            )
+            for i in range(self.N_episodes)
+        ]
+        return scenarios
+    
     def switch_running_objective(self):
         self.running_objective = (
             self.portfolio_running_objective
@@ -63,7 +88,7 @@ class GameScenario(RLScenario):
             if self.critic is self.market_critic
             else self.market_critic
         )
-
+    
     @apply_callbacks()
     def compute_action_sampled(self, time, estimated_state, observation):
         return super().compute_action_sampled(time, estimated_state, observation)
@@ -83,7 +108,49 @@ class GameScenario(RLScenario):
         self.switch_critic()
         return policy_weights_to_fix, policy_weights_to_unfix
 
+    @apply_callbacks()
     def reset_iteration(self):
         super().reset_iteration()
         if self.iteration_counter % self.iters_to_switch_opt_agent == 0:
             self.switch_optimizing_agent()
+
+
+    def on_action_issued(self, observation):
+        action = self.get_action_from_policy()
+        self.current_running_objective = self.running_objective(
+            self.state, action
+        )
+        self.value = self.calculate_value(self.current_running_objective, self.time)
+        observation_action = np.concatenate(
+            (observation, action), axis=1
+        )
+        received_data =  {
+            "action": action,
+            "running_objective": self.current_running_objective,
+            "current_value": self.value,
+            "observation_action": observation_action,
+            "state": self.state,
+            "running_objective_market": self.market_running_objective(self.state, action),
+            "running_objective_portfolio": self.portfolio_running_objective(self.state, action)
+        }
+        self.data_buffer.push_to_end(**received_data)
+        return received_data
+
+
+    @apply_callbacks()
+    def post_compute_action(self, observation, estimated_state):
+        action = self.get_action_from_policy()
+        return {
+            "estimated_state": estimated_state,
+            "observation": observation,
+            "time": self.time,
+            "episode_id": self.episode_counter,
+            "iteration_id": self.iteration_counter,
+            "step_id": self.step_counter,
+            "action": action,
+            "running_objective": self.current_running_objective,
+            "current_value": self.value,
+            "state": self.state,
+            "running_objective_market": self.market_running_objective(self.state, action),
+            "running_objective_portfolio": self.portfolio_running_objective(self.state, action)
+        }

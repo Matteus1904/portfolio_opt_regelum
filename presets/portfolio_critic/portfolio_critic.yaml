@@ -1,7 +1,7 @@
 _target_: src.critic.Critic
 
 # Define below the constructor kwargs
-system_dim_observation: $ common.number_of_stocks
+system_dim_observation: = ${common.number_of_stocks} + 1
 system_dim_inputs: $ common.number_of_stocks
 model:
   _target_: regelum.model.ModelPerceptron
@@ -18,11 +18,11 @@ optimizer_config:
   _target_: regelum.optimizable.core.configs.TorchOptimizerConfig
   n_epochs: 20
   data_buffer_iter_bathes_kwargs:
-    batch_sampler: regelum.data_buffers.batch_sampler.RollingBatchSampler
-    dtype: torch.FloatTensor
+    batch_sampler: = regelum.data_buffers.batch_sampler.RollingBatchSampler
+    dtype: = torch.FloatTensor
     mode: "full"
     n_batches: 1
     device: "cpu"
   opt_method_kwargs:
-    lr: 0.001  
+    lr: 0.1  
 discount_factor: $ common.discount_factor
