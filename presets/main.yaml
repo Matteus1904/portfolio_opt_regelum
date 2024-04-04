@@ -13,10 +13,13 @@ defaults:
 # below we can define our callbacks we want to use in 
 # our agent environment loop
 callbacks:
-#   - src.callback.SwitchAgentCallback
+  - src.callback.SwitchAgentCallback
 #   - src.callback.DoubleAgentStepLogger
-#   - src.callback.WhichOptimizeCallback
+  - src.callback.WhichOptimizeCallback
   - src.callback.HistoricalDataCallback
+  - regelum.callback.CriticObjectiveSaver
+  - regelum.callback.PolicyObjectiveSaver
+  - regelum.callback.ObjectiveSaver
 
 
 # let us define the outputs folder for our runs

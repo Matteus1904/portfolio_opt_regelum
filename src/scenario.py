@@ -11,6 +11,7 @@ from regelum.event import Event
 from .objective import PortfolioRunningObjectiveModel, MarketRunningObjectiveModel
 from .policy import JointPolicyVPG
 import numpy as np
+from copy import deepcopy
 
 
 
@@ -28,6 +29,8 @@ class GameScenario(RLScenario):
         N_iterations: int = 200,
         iters_to_switch_opt_agent: int = 1,
     ):
+        self.portfolio_running_objective_model = portfolio_running_objective_model
+        self.market_running_objective_model = market_running_objective_model
         self.portfolio_running_objective = RunningObjective(
             model=portfolio_running_objective_model
         )
@@ -52,6 +55,46 @@ class GameScenario(RLScenario):
         )
         self.policy: JointPolicyVPG
 
+    def instantiate_rl_scenarios(self):
+        simulators = [deepcopy(self.simulator) for _ in range(self.N_episodes)]
+        # for simulator in simulators:
+        #     simulator.state_init = simulator.state + np.random.normal(
+        #         0, 0.5, simulator.state.shape
+        #     )
+        #     simulator.state = simulator.state_init
+        #     simulator.system.state = simulator.state_init
+        #     simulator.observation = simulator.get_observation(
+        #         time=simulator.time,
+        #         state=simulator.state_init,
+        #         inputs=simulator.action_init,
+        #     )
+        # simulator.system.state_init = simulator.state_init
+        scenarios = [
+            GameScenario(
+                policy=self.policy,
+                portfolio_critic=self.portfolio_critic,
+                market_critic=self.market_critic,
+                # running_objective=self.running_objective,
+                simulator=simulators[i],
+                # policy_optimization_event=self.policy_optimization_event,
+                # critic_optimization_event=self.critic_optimization_event,
+                discount_factor=self.discount_factor,
+                # is_critic_first=self.is_critic_first,
+                sampling_time=self.sampling_time,
+                # constraint_parser=self.constraint_parser,
+                # observer=self.observer,
+                # N_episodes=self.N_episodes,  # for correct logging
+                N_iterations=self.N_iterations,  # for correct logging
+                # value_threshold=self.value_threshold,
+                # stopping_criterion=self.stopping_criterion,
+                iters_to_switch_opt_agent = self.iters_to_switch_opt_agent,
+                portfolio_running_objective_model = self.portfolio_running_objective_model,
+                market_running_objective_model = self.market_running_objective_model
+            )
+            for i in range(self.N_episodes)
+        ]
+        return scenarios
+    
     def switch_running_objective(self):
         self.running_objective = (
             self.portfolio_running_objective
@@ -85,6 +128,7 @@ class GameScenario(RLScenario):
         self.switch_critic()
         return policy_weights_to_fix, policy_weights_to_unfix
 
+    @apply_callbacks()
     def reset_iteration(self):
         super().reset_iteration()
         if self.iteration_counter % self.iters_to_switch_opt_agent == 0:
@@ -111,6 +155,7 @@ class GameScenario(RLScenario):
 
     @apply_callbacks()
     def post_compute_action(self, observation, estimated_state):
+        action = self.get_action_from_policy()
         return {
             "estimated_state": estimated_state,
             "observation": observation,
@@ -118,8 +163,10 @@ class GameScenario(RLScenario):
             "episode_id": self.episode_counter,
             "iteration_id": self.iteration_counter,
             "step_id": self.step_counter,
-            "action": self.get_action_from_policy(),
+            "action": action,
             "running_objective": self.current_running_objective,
             "current_value": self.value,
-            "state": self.state
+            "state": self.state,
+            "running_objective_market": self.market_running_objective(self.state, action),
+            "running_objective_portfolio": self.portfolio_running_objective(self.state, action)
         }

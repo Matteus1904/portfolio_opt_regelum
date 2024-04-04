@@ -39,10 +39,14 @@ class HistoricalDataCallback(HistoricalDataCallback):
                 {
                     **{
                         "time": output["time"],
-                        "running_objective": output["running_objective"],
+                        # "running_objective": output["running_objective"],
                         "current_value": output["current_value"],
                         "episode_id": output["episode_id"],
                         "iteration_id": output["iteration_id"],
+                        # "running_objective_portfolio": obj.portfolio_running_objective(output['state'], output['action']),
+                        # "running_objective_market": obj.market_running_objective(output['state'], output['action'])
+                        "running_objective_portfolio": output["running_objective_portfolio"],
+                        "running_objective_market": output["running_objective_market"],
                     },
                     **dict(zip(self.action_components_naming, output["action"][0])),
                     **dict(
@@ -60,10 +64,13 @@ class HistoricalDataCallback(HistoricalDataCallback):
                     data_buffer.to_pandas(
                         keys={
                             "time": float,
-                            "running_objective": float,
+                            # "running_objective": float,
                             "current_value": float,
                             "episode_id": int,
                             "iteration_id": int,
+                            "running_objective_portfolio": float,
+                            "running_objective_market": float
+
                         }
                     )
                 ]
@@ -114,32 +121,32 @@ class SwitchAgentCallback(Callback):
             f"after iterartion: {obj.iteration_counter}"
         )
 
-class DoubleAgentStepLogger(HistoricalCallback):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cooldown = 0.0
-        self.state_components_naming = ['cash [USD]'] + [f'volume_{i}' for i in range(4)] + [f'price_{i} [USD]' for i in range(4)]
+# class DoubleAgentStepLogger(HistoricalCallback):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.cooldown = 0.0
+#         self.state_components_naming = ['cash [USD]'] + [f'volume_{i}' for i in range(4)] + [f'price_{i} [USD]' for i in range(4)]
 
-    def is_target_event(self, obj, method, output, triggers):
-        return (method == "post_compute_action") and isinstance(obj, GameScenario)
+#     def is_target_event(self, obj, method, output, triggers):
+#         return (method == "post_compute_action") and isinstance(obj, GameScenario)
 
-    def on_function_call(self, obj: GameScenario, method, output):
-        self.add_datum(
-            {
-                **{
-                    "time": output["time"],
-                    "running_objective_portfolio": obj.portfolio_running_objective(
-                        output["estimated_state"], output["action"]
-                    ),
-                    "running_objective_market": obj.market_running_objective(
-                        output["estimated_state"], output["action"]
-                    ),
-                    "episode_id": output["episode_id"],
-                    "iteration_id": output["iteration_id"],
-                },
-                **dict(zip(self.state_components_naming, output["estimated_state"][0])),
-            }
-        )
+#     def on_function_call(self, obj: GameScenario, method, output):
+#         self.add_datum(
+#             {
+#                 **{
+#                     "time": output["time"],
+#                     "running_objective_portfolio": obj.portfolio_running_objective(
+#                         output["estimated_state"], output["action"]
+#                     ),
+#                     "running_objective_market": obj.market_running_objective(
+#                         output["estimated_state"], output["action"]
+#                     ),
+#                     "episode_id": output["episode_id"],
+#                     "iteration_id": output["iteration_id"],
+#                 },
+#                 **dict(zip(self.state_components_naming, output["estimated_state"][0])),
+#             }
+#         )
 
 
 class WhichOptimizeCallback(Callback):

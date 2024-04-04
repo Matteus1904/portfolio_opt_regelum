@@ -26,7 +26,7 @@ class PortfolioRunningObjectiveModel(ModelQuadLin):
         portfolio_return = ((current_prices.T)@ (current_volumes) - (prev_prices.T @ prev_volumes))/(prev_prices.T @ prev_volumes)
         D = rg.array([[(B*(portfolio_return - A) - (1/2)*A*(portfolio_return**2 - B))/(B-A**2 + 1e-5)**(3/2)]])
         action = argin[1]
-        return super().__call__(-D, action, **kwargs)
+        return super().__call__(1/D, action, **kwargs)
 
 
 class MarketRunningObjectiveModel(ModelQuadLin):
