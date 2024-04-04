@@ -47,6 +47,7 @@ class GameScenario(RLScenario):
             running_objective=self.portfolio_running_objective,
             simulator=simulator,
             policy_optimization_event=Event.reset_iteration,
+            critic_optimization_event=Event.reset_iteration,
             discount_factor=discount_factor,
             sampling_time=sampling_time,
             N_episodes=policy.N_episodes,
@@ -57,36 +58,15 @@ class GameScenario(RLScenario):
 
     def instantiate_rl_scenarios(self):
         simulators = [deepcopy(self.simulator) for _ in range(self.N_episodes)]
-        # for simulator in simulators:
-        #     simulator.state_init = simulator.state + np.random.normal(
-        #         0, 0.5, simulator.state.shape
-        #     )
-        #     simulator.state = simulator.state_init
-        #     simulator.system.state = simulator.state_init
-        #     simulator.observation = simulator.get_observation(
-        #         time=simulator.time,
-        #         state=simulator.state_init,
-        #         inputs=simulator.action_init,
-        #     )
-        # simulator.system.state_init = simulator.state_init
         scenarios = [
             GameScenario(
                 policy=self.policy,
                 portfolio_critic=self.portfolio_critic,
                 market_critic=self.market_critic,
-                # running_objective=self.running_objective,
                 simulator=simulators[i],
-                # policy_optimization_event=self.policy_optimization_event,
-                # critic_optimization_event=self.critic_optimization_event,
                 discount_factor=self.discount_factor,
-                # is_critic_first=self.is_critic_first,
                 sampling_time=self.sampling_time,
-                # constraint_parser=self.constraint_parser,
-                # observer=self.observer,
-                # N_episodes=self.N_episodes,  # for correct logging
-                N_iterations=self.N_iterations,  # for correct logging
-                # value_threshold=self.value_threshold,
-                # stopping_criterion=self.stopping_criterion,
+                N_iterations=self.N_iterations,
                 iters_to_switch_opt_agent = self.iters_to_switch_opt_agent,
                 portfolio_running_objective_model = self.portfolio_running_objective_model,
                 market_running_objective_model = self.market_running_objective_model
@@ -136,18 +116,22 @@ class GameScenario(RLScenario):
 
 
     def on_action_issued(self, observation):
+        action = self.get_action_from_policy()
         self.current_running_objective = self.running_objective(
-            self.state, self.get_action_from_policy()
+            self.state, action
         )
         self.value = self.calculate_value(self.current_running_objective, self.time)
         observation_action = np.concatenate(
-            (observation, self.get_action_from_policy()), axis=1
+            (observation, action), axis=1
         )
         received_data =  {
-            "action": self.get_action_from_policy(),
+            "action": action,
             "running_objective": self.current_running_objective,
             "current_value": self.value,
             "observation_action": observation_action,
+            "state": self.state,
+            "running_objective_market": self.market_running_objective(self.state, action),
+            "running_objective_portfolio": self.portfolio_running_objective(self.state, action)
         }
         self.data_buffer.push_to_end(**received_data)
         return received_data

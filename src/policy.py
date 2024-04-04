@@ -13,6 +13,7 @@ from regelum.data_buffers import DataBuffer
 from regelum.utils import rg
 from regelum.__internal.base import apply_callbacks
 
+
 def get_gae_advantage(
     gae_lambda: float,
     running_objectives: th.FloatTensor,

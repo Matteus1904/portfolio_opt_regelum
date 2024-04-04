@@ -34,5 +34,5 @@ market_critic: ~ market_critic
 system: ~ system
 is_normalize_advantages: True
 gae_lambda: 0.95
-N_episodes: 3
+N_episodes: 8
 sampling_time: $ common.sampling_time

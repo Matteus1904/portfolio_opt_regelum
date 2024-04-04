@@ -14,11 +14,8 @@ defaults:
 # our agent environment loop
 callbacks:
   - src.callback.SwitchAgentCallback
-#   - src.callback.DoubleAgentStepLogger
   - src.callback.WhichOptimizeCallback
   - src.callback.HistoricalDataCallback
-  - regelum.callback.CriticObjectiveSaver
-  - regelum.callback.PolicyObjectiveSaver
   - regelum.callback.ObjectiveSaver
 
 
