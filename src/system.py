@@ -167,7 +167,7 @@ class Portfolio(System):
     _name = "portfolio"
     _system_type = "discrete_stoch"
 
-    def __init__(self, dim_state, action_bounds):
+    def __init__(self, dim_state, action_bounds, transaction_cost):
         """Define number of stocks in the system"""
         self._dim_state = dim_state
         self.number_of_shares = (dim_state -3)//2
@@ -181,6 +181,7 @@ class Portfolio(System):
         self._state_naming += [f'prev_volume_{i}' for i in range(self._dim_inputs)]
         self._observation_naming = ['cash share'] + [f'share_{i}' for i in range(self._dim_inputs)]
         self._inputs_naming =[f'delta_volume_{i}' for i in range(self._dim_inputs)]
+        self.transaction_cost = transaction_cost
         super().__init__()
     
     def _compute_state_dynamics(
@@ -208,6 +209,8 @@ class Portfolio(System):
         portfolio_return = ((current_prices.T)@ (current_volumes) - (prev_prices.T @ prev_volumes))/(prev_prices.T @ prev_volumes)
 
         Dstate = rg.zeros(self.dim_state, prototype=(state, inputs))
+        current_prices[inputs < 0] *= (1-self.transaction_cost)
+        current_prices[inputs > 0] /= (1-self.transaction_cost)
         Dstate[0] = (- current_prices.T @ inputs)* self._step_size
         Dstate[1] = (1-self._step_size)*(portfolio_return - A)
         Dstate[2] = (1-self._step_size)*(portfolio_return**2  - B)
