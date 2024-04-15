@@ -90,10 +90,12 @@ class JointPolicyVPG(Policy):
         portfolio_critic: Critic,
         market_critic: Critic,
         system: ComposedSystem,
+        fixed_market_actions: np.array,
         is_normalize_advantages: bool = True,
         gae_lambda: float = 0.95,
         N_episodes: int = 1,
         sampling_time: float = 0.1,
+        type_of_adversary: str = 'strategic'
     ):
         def freeze_stds(params):
             for p in params():
@@ -129,6 +131,8 @@ class JointPolicyVPG(Policy):
         self.current_critic = self.portfolio_critic
         self.N_episodes = N_episodes
         self.sampling_time = sampling_time
+        self.type_of_adversary = type_of_adversary
+        self.fixed_market_actions = fixed_market_actions
 
         ## Define an optimization problem here
 
@@ -204,7 +208,14 @@ class JointPolicyVPG(Policy):
 
     def get_action(self, observation: np.array) -> np.array:
         action_portfolio = self.portfolio_model(th.FloatTensor(observation))
-        action_market = self.market_model(th.FloatTensor(observation))
+        if self.type_of_adversary == 'strategic':
+            action_market = self.market_model(th.FloatTensor(observation))
+        elif self.type_of_adversary == 'fixed':
+            action_market = th.FloatTensor(self.fixed_market_actions)
+        elif self.type_of_adversary == 'random':
+            action_market = th.FloatTensor(np.random.uniform(low = self.market_model.output_bounds_array[:, 0], high = self.market_model.output_bounds_array[:, 1]).reshape(1, -1))
+        else:
+            raise ValueError("Invalid type of adversary")
         action = rg.hstack((action_portfolio, action_market)).detach().cpu().numpy()
         return action  # Concatenate actions in order to pass them as a whole into Scenario at runtime
 
