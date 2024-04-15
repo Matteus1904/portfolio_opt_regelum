@@ -201,17 +201,18 @@ class Portfolio(System):
         number_of_stocks = (len(state) - 3)//4
         A = state[1]
         B = state[2]
-        current_prices = state[3:3+number_of_stocks]
-        prev_prices = state[3+number_of_stocks: 3+2*number_of_stocks]
-        current_volumes = state[3+2*number_of_stocks: 3+3*number_of_stocks]
-        prev_volumes = state[3+3*number_of_stocks: ]
+        current_volumes = state[3:3+number_of_stocks]
+        prev_volumes = state[3+number_of_stocks: 3+2*number_of_stocks]
+        current_prices = state[3+2*number_of_stocks: 3+3*number_of_stocks]
+        prev_prices = state[3+3*number_of_stocks: ]
 
         portfolio_return = ((current_prices.T)@ (current_volumes) - (prev_prices.T @ prev_volumes))/(prev_prices.T @ prev_volumes)
 
         Dstate = rg.zeros(self.dim_state, prototype=(state, inputs))
-        current_prices[inputs < 0] *= (1-self.transaction_cost)
-        current_prices[inputs > 0] /= (1-self.transaction_cost)
-        Dstate[0] = (- current_prices.T @ inputs)* self._step_size
+        prices_with_tr_cost = current_prices.copy()
+        prices_with_tr_cost[inputs < 0] *= (1-self.transaction_cost)
+        prices_with_tr_cost[inputs > 0] /= (1-self.transaction_cost)
+        Dstate[0] = (- prices_with_tr_cost.T @ inputs)* self._step_size
         Dstate[1] = (1-self._step_size)*(portfolio_return - A)
         Dstate[2] = (1-self._step_size)*(portfolio_return**2  - B)
         Dstate[3:self.number_of_shares+3] = inputs.reshape(1, -1) * self._step_size
@@ -227,7 +228,7 @@ class Portfolio(System):
 
         cash = state[0]
         cash_and_volumes = rg.concatenate((rg.array([cash]), current_volumes))
-        observation = cash_and_volumes / (rg.concatenate((rg.array([[1.]]), current_prices)).T @ cash_and_volumes)
+        observation =(rg.concatenate((rg.array([[1.]]), current_prices)) * cash_and_volumes) / (rg.concatenate((rg.array([[1.]]), current_prices)).T @ cash_and_volumes)
         return observation
 
     
