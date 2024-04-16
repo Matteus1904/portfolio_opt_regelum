@@ -273,6 +273,12 @@ class MarketAttack(System):
         corr_matrix = rg.zeros((self.number_of_shares, self.number_of_shares))
         corr_matrix[np.triu_indices(self.number_of_shares, k=1)] = corr
         corr_matrix = corr_matrix + corr_matrix.T + np.eye(self.number_of_shares)
+        eigval, eigvec = np.linalg.eig(corr_matrix)
+        if not all(eigval>0):
+            val = np.maximum(eigval,1e-5)
+            B = np.diag(np.sqrt(1/(eigvec * eigvec @ val)))@eigvec@np.diag(np.sqrt(val))
+            corr_matrix = B@B.T
+        
         choleskyMatrix = np.linalg.cholesky(corr_matrix)
         cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.number_of_shares))).reshape(-1, 1)
 
@@ -286,5 +292,6 @@ class MarketAttack(System):
         current_prices, prev_prices = state[:self.number_of_shares], state[self.number_of_shares:]
         returns = (current_prices - prev_prices)/prev_prices
         return returns
+
     
 
