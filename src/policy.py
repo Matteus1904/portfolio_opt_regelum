@@ -95,7 +95,8 @@ class JointPolicyVPG(Policy):
         gae_lambda: float = 0.95,
         N_episodes: int = 1,
         sampling_time: float = 0.1,
-        type_of_adversary: str = 'strategic'
+        type_of_adversary: str = 'strategic',
+        testing: bool = False
     ):
         def freeze_stds(params):
             for p in params():
@@ -135,6 +136,11 @@ class JointPolicyVPG(Policy):
         self.fixed_market_actions = fixed_market_actions
 
         ## Define an optimization problem here
+
+        if testing:
+            self.portfolio_model.load_state_dict(th.load('../../../2024-04-17/14-50-59/0/portfolio_actor.pt'))
+            self.portfolio_critic.model.load_state_dict(th.load('../../../2024-04-17/14-50-59/0/portfolio_critic.pt'))
+
 
         self.portfolio_model_weigths = self.create_variable(
             name="portfolio_model_weights", like=self.portfolio_model.named_parameters

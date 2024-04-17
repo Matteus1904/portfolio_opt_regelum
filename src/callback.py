@@ -1,13 +1,11 @@
 from regelum.callback import (
     Callback,
-    HistoricalCallback,
     HistoricalDataCallback
 )
 from .scenario import GameScenario
 from .policy import JointPolicyVPG
 import pandas as pd
 import numpy as np
-
 
 class HistoricalDataCallback(HistoricalDataCallback):
     def on_function_call(self, obj, method, output):

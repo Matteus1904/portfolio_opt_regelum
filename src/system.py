@@ -252,6 +252,7 @@ class MarketAttack(System):
         self._state_naming = [f'current_price_{i} [USD]' for i in range(self.number_of_shares)] + [f'prev_price_{i} [USD]' for i in range(self.number_of_shares)]
         self._inputs_naming =[f'drift_{i}' for i in range(self.number_of_shares)] + [f'volatility_{i}' for i in range(self.number_of_shares)]
         self._inputs_naming += [f'corr_{i}_{j}' for i in range(self.number_of_shares) for j in range(i+1, self.number_of_shares)]
+        # self.seed = 0
         super().__init__()
 
     def _compute_state_dynamics(
@@ -280,8 +281,9 @@ class MarketAttack(System):
             corr_matrix = B@B.T
         
         choleskyMatrix = np.linalg.cholesky(corr_matrix)
-        cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.number_of_shares))).reshape(-1, 1)
-
+        # np.random.seed(self.seed)
+        # self.seed +=1
+        cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.number_of_shares), )).reshape(-1, 1)
         Dstate = rg.concatenate((drifts * (self._step_size)*current_prices + variances*rg.sqrt(self._step_size)*current_prices*cX, current_prices - prev_prices))
 
         return Dstate
