@@ -43,6 +43,7 @@ class HistoricalDataCallback(HistoricalDataCallback):
                         "iteration_id": output["iteration_id"],
                         "running_objective_portfolio": output["running_objective_portfolio"],
                         "running_objective_market": output["running_objective_market"],
+                        "current_running_objective": output["running_objective"],
                     },
                     **dict(zip(self.action_components_naming, output["action"][0])),
                     **dict(
@@ -64,7 +65,8 @@ class HistoricalDataCallback(HistoricalDataCallback):
                             "episode_id": int,
                             "iteration_id": int,
                             "running_objective_portfolio": float,
-                            "running_objective_market": float
+                            "running_objective_market": float,
+                            "running_objective": float
 
                         }
                     )

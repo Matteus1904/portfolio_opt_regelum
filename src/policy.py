@@ -96,7 +96,9 @@ class JointPolicyVPG(Policy):
         N_episodes: int = 1,
         sampling_time: float = 0.1,
         type_of_adversary: str = 'strategic',
-        testing: bool = False
+        pretrained: bool = False, 
+        pretrained_weights_critic: str = '.',
+        pretrained_weights_actor: str = '.'
     ):
         def freeze_stds(params):
             for p in params():
@@ -137,9 +139,9 @@ class JointPolicyVPG(Policy):
 
         ## Define an optimization problem here
 
-        if testing:
-            self.portfolio_model.load_state_dict(th.load('../../../2024-04-17/14-50-59/0/portfolio_actor.pt'))
-            self.portfolio_critic.model.load_state_dict(th.load('../../../2024-04-17/14-50-59/0/portfolio_critic.pt'))
+        if pretrained:
+            self.portfolio_model.load_state_dict(th.load(pretrained_weights_actor))
+            self.portfolio_critic.model.load_state_dict(th.load(pretrained_weights_critic))
 
 
         self.portfolio_model_weigths = self.create_variable(

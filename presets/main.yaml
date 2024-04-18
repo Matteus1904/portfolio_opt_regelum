@@ -17,6 +17,7 @@ callbacks:
   - src.callback.WhichOptimizeCallback
   - src.callback.HistoricalDataCallback
   - regelum.callback.ObjectiveSaver
+  - regelum.callback.ValueCallback
 
 
 # let us define the outputs folder for our runs

@@ -7,6 +7,8 @@ def launch(cfg):
     scenario.run()  # run it
     torch.save(scenario.portfolio_critic.model.state_dict(), './portfolio_critic.pt')
     torch.save(scenario.policy.portfolio_model.state_dict(), './portfolio_actor.pt')
+    torch.save(scenario.market_critic.model.state_dict(), './market_critic.pt')
+    torch.save(scenario.policy.market_model.state_dict(), './market_actor.pt')
 
 
 if __name__ == "__main__":

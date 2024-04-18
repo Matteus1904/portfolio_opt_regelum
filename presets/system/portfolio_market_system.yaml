@@ -2,7 +2,7 @@ _target_: src.system.ComposedSystem
 
 sys_left: 
   _target_: src.system.Portfolio
-  dim_state:  = ${common.number_of_stocks} *2 + 3
+  dim_state:  = ${common.number_of_stocks} *2 + 4
   action_bounds: $ common.action_bounds_left
   transaction_cost: 0.001
 sys_right:

@@ -85,8 +85,8 @@ class Historical_Simulator(Simulator):
         current_step = int(self.time/self.max_step)
         if self.time == 0.0:
             self.current_batch = random.randint(0, self.number_of_batches-1)
-            self.state[:, 3+2*number_of_stocks: 3+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step]
-            self.state[:, 3+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
+            self.state[:, 4+2*number_of_stocks: 4+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step]
+            self.state[:, 4+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
         if self.system.system_type == "discrete_stoch":
             if self.time <= self.time_final:
                 self.state_init = self.state_init.copy()
@@ -94,8 +94,8 @@ class Historical_Simulator(Simulator):
                 self.state += (
                     self.system.compute_state_dynamics(time = None, state = self.state, inputs=self.system.inputs)
                 )
-                self.state[:, 3+2*number_of_stocks: 3+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step + 1]
-                self.state[:, 3+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
+                self.state[:, 4+2*number_of_stocks: 4+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step + 1]
+                self.state[:, 4+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
                 self.observation = self.get_observation(
                     time=self.time, state=self.state, inputs=self.system.inputs
                 )

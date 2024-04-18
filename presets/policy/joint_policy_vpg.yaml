@@ -3,10 +3,10 @@ _target_: src.policy.JointPolicyVPG
 # Define below the constructor kwargs
 portfolio_model:
   _target_: regelum.model.PerceptronWithTruncatedNormalNoise
-  dim_input: = ${common.number_of_stocks} * 2 + 1
+  dim_input: = ${common.number_of_stocks} * 2 + 2
   dim_output: $ common.number_of_stocks
   dim_hidden: 100
-  n_hidden_layers: 3
+  n_hidden_layers: 4
   hidden_activation: 
     _target_: torch.nn.Tanh
   output_bounds: $ common.action_bounds_left
@@ -17,10 +17,10 @@ portfolio_model:
   stds: = [0.05]*(${common.number_of_stocks})
 market_model:
   _target_: regelum.model.PerceptronWithTruncatedNormalNoise
-  dim_input: = ${common.number_of_stocks} * 2 + 1
+  dim_input: = ${common.number_of_stocks} * 2 + 2
   dim_output: =  ${common.number_of_stocks} * ( ${common.number_of_stocks} + 3 ) // 2
   dim_hidden: 100
-  n_hidden_layers: 3
+  n_hidden_layers: 4
   hidden_activation: 
     _target_: torch.nn.Tanh
   output_bounds: $ common.action_bounds_right
@@ -38,4 +38,6 @@ N_episodes: 16
 sampling_time: $ common.sampling_time
 type_of_adversary: fixed
 fixed_market_actions: = regelum.utils.rg.array([0.1]*(${common.number_of_stocks} * ( ${common.number_of_stocks} +3 ) // 2)).reshape(1, -1)
-testing: True
+pretrained: True
+pretrained_weights_actor: ../../../2024-04-18/01-25-13/0/portfolio_actor.pt
+pretrained_weights_critic: ../../../2024-04-18/01-25-13/0/portfolio_critic.pt

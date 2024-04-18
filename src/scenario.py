@@ -31,6 +31,7 @@ class GameScenario(RLScenario):
         sampling_time: float = 0.05,
         N_iterations: int = 200,
         iters_to_switch_opt_agent: int = 1,
+        start_with_portfolio: bool = True
     ):
         self.portfolio_running_objective_model = portfolio_running_objective_model
         self.market_running_objective_model = market_running_objective_model
@@ -44,10 +45,16 @@ class GameScenario(RLScenario):
         self.market_critic = market_critic
 
         self.iters_to_switch_opt_agent = iters_to_switch_opt_agent
+        if start_with_portfolio:
+            self.running_objective = self.portfolio_running_objective
+            self.critic = portfolio_critic
+        else:
+            self.critic = market_critic
+            self.running_objective = self.market_running_objective
         super().__init__(
             policy=policy,
-            critic=portfolio_critic,
-            running_objective=self.portfolio_running_objective,
+            critic=self.critic,
+            running_objective=self.running_objective,
             simulator=simulator,
             policy_optimization_event=Event.reset_iteration,
             critic_optimization_event=Event.reset_iteration,
@@ -72,7 +79,8 @@ class GameScenario(RLScenario):
                 N_iterations=self.N_iterations,
                 iters_to_switch_opt_agent = self.iters_to_switch_opt_agent,
                 portfolio_running_objective_model = self.portfolio_running_objective_model,
-                market_running_objective_model = self.market_running_objective_model
+                market_running_objective_model = self.market_running_objective_model,
+                start_with_portfolio = self.running_objective is self.portfolio_running_objective
             )
             for i in range(self.N_episodes)
         ]
