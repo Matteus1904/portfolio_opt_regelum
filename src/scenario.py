@@ -13,7 +13,10 @@ from .policy import JointPolicyVPG
 import numpy as np
 from copy import deepcopy
 
-
+from typing import List
+from typing_extensions import Self
+import torch
+import random
 
 class GameScenario(RLScenario):
     def __init__(
@@ -28,6 +31,7 @@ class GameScenario(RLScenario):
         sampling_time: float = 0.05,
         N_iterations: int = 200,
         iters_to_switch_opt_agent: int = 1,
+        start_with_portfolio: bool = True
     ):
         self.portfolio_running_objective_model = portfolio_running_objective_model
         self.market_running_objective_model = market_running_objective_model
@@ -41,10 +45,16 @@ class GameScenario(RLScenario):
         self.market_critic = market_critic
 
         self.iters_to_switch_opt_agent = iters_to_switch_opt_agent
+        if start_with_portfolio:
+            self.running_objective = self.portfolio_running_objective
+            self.critic = portfolio_critic
+        else:
+            self.critic = market_critic
+            self.running_objective = self.market_running_objective
         super().__init__(
             policy=policy,
-            critic=portfolio_critic,
-            running_objective=self.portfolio_running_objective,
+            critic=self.critic,
+            running_objective=self.running_objective,
             simulator=simulator,
             policy_optimization_event=Event.reset_iteration,
             critic_optimization_event=Event.reset_iteration,
@@ -69,7 +79,8 @@ class GameScenario(RLScenario):
                 N_iterations=self.N_iterations,
                 iters_to_switch_opt_agent = self.iters_to_switch_opt_agent,
                 portfolio_running_objective_model = self.portfolio_running_objective_model,
-                market_running_objective_model = self.market_running_objective_model
+                market_running_objective_model = self.market_running_objective_model,
+                start_with_portfolio = self.running_objective is self.portfolio_running_objective
             )
             for i in range(self.N_episodes)
         ]
@@ -154,3 +165,19 @@ class GameScenario(RLScenario):
             "running_objective_market": self.market_running_objective(self.state, action),
             "running_objective_portfolio": self.portfolio_running_objective(self.state, action)
         }
+    
+    def run_ith_scenario(
+        self, episode_id: int, iteration_id: int, scenarios: List[Self], queue
+    ):
+        seed = torch.initial_seed() + episode_id + iteration_id*self.policy.N_episodes
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        self.seed_increment += 1
+
+        queue.put(
+            (
+                episode_id,
+                scenarios[episode_id - 1].run_episode(episode_id, iteration_id),
+            )
+        )

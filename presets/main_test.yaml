@@ -4,8 +4,8 @@
 defaults:
   - system: portfolio_market_system
   - policy: joint_policy_vpg
-  - simulator: simulator
-  - scenario: scenario
+  - simulator: simulator_test
+  - scenario: scenario_test
   - common: common
   - portfolio_critic: portfolio_critic
   - market_critic: market_critic
@@ -17,6 +17,7 @@ callbacks:
   - src.callback.WhichOptimizeCallback
   - src.callback.HistoricalDataCallback
   - regelum.callback.ObjectiveSaver
+  - regelum.callback.ValueCallback
 
 
 # let us define the outputs folder for our runs

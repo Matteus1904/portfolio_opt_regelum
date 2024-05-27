@@ -1,0 +1,7 @@
+casadi==3.6.5
+numpy==1.24.2
+pandas==2.2.2
+psutil==5.9.4
+Requests==2.32.2
+torch==2.2.2
+typing_extensions==4.12.0

@@ -1,7 +1,0 @@
-_target_: src.simulator.Simulator
-
-# Define below the constructor kwargs
-system: ~ system
-state_init: = regelum.utils.rg.array([1.0, 0.0, 0.0] + [1.0]*(${common.number_of_stocks}*4 )).reshape(1, -1)
-time_final: 7
-max_step: $ common.sampling_time

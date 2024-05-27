@@ -170,16 +170,16 @@ class Portfolio(System):
     def __init__(self, dim_state, action_bounds, transaction_cost):
         """Define number of stocks in the system"""
         self._dim_state = dim_state
-        self.number_of_shares = (dim_state -3)//2
-        self._dim_inputs = self.number_of_shares 
-        self._dim_observation = self.number_of_shares +1
+        self.number_of_shares = (dim_state -4)//2
+        self._dim_inputs = self.number_of_shares
+        self._dim_observation = self.number_of_shares +2
         if action_bounds is None:
             self._action_bounds = [[-1, 1]]*self._dim_inputs
         else:
             self._action_bounds = action_bounds
-        self._state_naming = ['cash [USD]'] + ['first_momentum'] + ['second_momontum'] + [f'current_volume_{i}' for i in range(self._dim_inputs)]
+        self._state_naming = ['cash [USD]', 'prev_cash [USD]'] + ['first_momentum'] + ['second_momentum'] + [f'current_volume_{i}' for i in range(self._dim_inputs)]
         self._state_naming += [f'prev_volume_{i}' for i in range(self._dim_inputs)]
-        self._observation_naming = ['cash share'] + [f'share_{i}' for i in range(self._dim_inputs)]
+        self._observation_naming = ['cash share'] + [f'share_{i}' for i in range(self._dim_inputs)] + ['cash delta']
         self._inputs_naming =[f'delta_volume_{i}' for i in range(self._dim_inputs)]
         self.transaction_cost = transaction_cost
         super().__init__()
@@ -199,36 +199,41 @@ class Portfolio(System):
         """
 
         number_of_stocks = (len(state) - 3)//4
-        A = state[1]
-        B = state[2]
-        current_volumes = state[3:3+number_of_stocks]
-        prev_volumes = state[3+number_of_stocks: 3+2*number_of_stocks]
-        current_prices = state[3+2*number_of_stocks: 3+3*number_of_stocks]
-        prev_prices = state[3+3*number_of_stocks: ]
+        current_cash = state[0]
+        prev_cash = state[1]
+        A = state[2]
+        B = state[3]
+        current_volumes = state[4:4+number_of_stocks]
+        prev_volumes = state[4+number_of_stocks: 4+2*number_of_stocks]
+        current_prices = state[4+2*number_of_stocks: 4+3*number_of_stocks]
+        prev_prices = state[4+3*number_of_stocks: ]
 
-        portfolio_return = ((current_prices.T)@ (current_volumes) - (prev_prices.T @ prev_volumes))/(prev_prices.T @ prev_volumes)
+        portfolio_return = ((current_prices.T)@ (current_volumes) - (prev_prices.T @ prev_volumes) + current_cash - prev_cash)/(prev_prices.T @ prev_volumes + prev_cash)
 
         Dstate = rg.zeros(self.dim_state, prototype=(state, inputs))
         prices_with_tr_cost = current_prices.copy()
         prices_with_tr_cost[inputs < 0] *= (1-self.transaction_cost)
         prices_with_tr_cost[inputs > 0] /= (1-self.transaction_cost)
         Dstate[0] = (- prices_with_tr_cost.T @ inputs)* self._step_size
-        Dstate[1] = (1-self._step_size)*(portfolio_return - A)
-        Dstate[2] = (1-self._step_size)*(portfolio_return**2  - B)
-        Dstate[3:self.number_of_shares+3] = inputs.reshape(1, -1) * self._step_size
-        Dstate[self.number_of_shares+3:] = (current_volumes - prev_volumes).reshape(1, -1)
+        Dstate[1] = current_cash - prev_cash
+        Dstate[2] = (1-self._step_size)*(portfolio_return - A)
+        Dstate[3] = (1-self._step_size)*(portfolio_return**2  - B)
+        Dstate[4:self.number_of_shares+4] = inputs.reshape(1, -1) * self._step_size
+        Dstate[self.number_of_shares+4:] = (current_volumes - prev_volumes).reshape(1, -1)
         return Dstate
     
 
     def _get_observation(
         self, time: Union[float, cs.MX], state: RgArray, inputs: RgArray
     ):
-        current_prices = state[2*self.number_of_shares+3:3*self.number_of_shares+3]
-        current_volumes = state[3:self.number_of_shares+3]
+        current_prices = state[2*self.number_of_shares+4:3*self.number_of_shares+4]
+        current_volumes = state[4:self.number_of_shares+4]
 
         cash = state[0]
+        prev_cash = state[1]
         cash_and_volumes = rg.concatenate((rg.array([cash]), current_volumes))
         observation =(rg.concatenate((rg.array([[1.]]), current_prices)) * cash_and_volumes) / (rg.concatenate((rg.array([[1.]]), current_prices)).T @ cash_and_volumes)
+        observation = rg.concatenate((observation, [(cash-prev_cash)/prev_cash]))
         return observation
 
     
@@ -252,6 +257,7 @@ class MarketAttack(System):
         self._state_naming = [f'current_price_{i} [USD]' for i in range(self.number_of_shares)] + [f'prev_price_{i} [USD]' for i in range(self.number_of_shares)]
         self._inputs_naming =[f'drift_{i}' for i in range(self.number_of_shares)] + [f'volatility_{i}' for i in range(self.number_of_shares)]
         self._inputs_naming += [f'corr_{i}_{j}' for i in range(self.number_of_shares) for j in range(i+1, self.number_of_shares)]
+        # self.seed = 0
         super().__init__()
 
     def _compute_state_dynamics(
@@ -273,9 +279,16 @@ class MarketAttack(System):
         corr_matrix = rg.zeros((self.number_of_shares, self.number_of_shares))
         corr_matrix[np.triu_indices(self.number_of_shares, k=1)] = corr
         corr_matrix = corr_matrix + corr_matrix.T + np.eye(self.number_of_shares)
+        eigval, eigvec = np.linalg.eig(corr_matrix)
+        if not all(eigval>0):
+            val = np.maximum(eigval,1e-5)
+            B = np.diag(np.sqrt(1/(eigvec * eigvec @ val)))@eigvec@np.diag(np.sqrt(val))
+            corr_matrix = B@B.T
+        
         choleskyMatrix = np.linalg.cholesky(corr_matrix)
-        cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.number_of_shares))).reshape(-1, 1)
-
+        # np.random.seed(self.seed)
+        # self.seed +=1
+        cX = rg.dot(choleskyMatrix, np.random.normal(size = (self.number_of_shares), )).reshape(-1, 1)
         Dstate = rg.concatenate((drifts * (self._step_size)*current_prices + variances*rg.sqrt(self._step_size)*current_prices*cX, current_prices - prev_prices))
 
         return Dstate
@@ -286,5 +299,6 @@ class MarketAttack(System):
         current_prices, prev_prices = state[:self.number_of_shares], state[self.number_of_shares:]
         returns = (current_prices - prev_prices)/prev_prices
         return returns
+
     
 
