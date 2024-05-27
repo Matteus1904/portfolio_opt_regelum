@@ -12,6 +12,7 @@ import numpy as np
 from regelum.data_buffers import DataBuffer
 from regelum.utils import rg
 from regelum.__internal.base import apply_callbacks
+import os
 
 
 def get_gae_advantage(
@@ -96,9 +97,7 @@ class JointPolicyVPG(Policy):
         N_episodes: int = 1,
         sampling_time: float = 0.1,
         type_of_adversary: str = 'strategic',
-        pretrained: bool = False, 
-        pretrained_weights_critic: str = '.',
-        pretrained_weights_actor: str = '.'
+        pretrain: bool = False
     ):
         def freeze_stds(params):
             for p in params():
@@ -139,7 +138,11 @@ class JointPolicyVPG(Policy):
 
         ## Define an optimization problem here
 
-        if pretrained:
+        if not pretrain:
+            last_date = sorted(os.listdir('../../../'))[-1]
+            last_time = sorted(os.listdir(f'../../../{last_date}'))[-2]
+            pretrained_weights_actor =  f'../../../{last_date}/{last_time}/0/portfolio_actor.pt'
+            pretrained_weights_critic =  f'../../../{last_date}/{last_time}/0/portfolio_critic.pt'
             self.portfolio_model.load_state_dict(th.load(pretrained_weights_actor))
             self.portfolio_critic.model.load_state_dict(th.load(pretrained_weights_critic))
 

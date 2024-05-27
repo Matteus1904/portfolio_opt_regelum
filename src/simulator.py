@@ -9,6 +9,7 @@ import math
 from datetime import datetime
 import numpy as np
 import random
+import os
 
 class Simulator(Simulator):
     def do_sim_step(self):
@@ -52,6 +53,7 @@ class Historical_Simulator(Simulator):
         first_step: Optional[float] = 1e-6,
         atol: Optional[float] = 1e-5,
         rtol: Optional[float] = 1e-3,
+        test: bool = False
     ):
         self.system = system
 
@@ -76,7 +78,12 @@ class Historical_Simulator(Simulator):
         self.rtol = rtol
         self.first_step = first_step
         self.number_of_steps = int(self.time_final/self.max_step)
-        self.prices = np.concatenate([klines(market = 'AAVEUSDT'), klines(market = 'SOLUSDT'), klines(market = 'LTCUSDT')], axis = 1)
+        self.prices = klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], startDay = "01/01/2022", endDay="01/05/2024")
+        self.test = test
+        if test:
+            self.prices = self.prices[-int(time_final/max_step)*16-1:]
+        else:
+            self.prices = self.prices[:-int(time_final/max_step)*16-1]
         self.number_of_batches = self.prices.shape[0]//self.number_of_steps
 
     def do_sim_step(self):
@@ -84,7 +91,16 @@ class Historical_Simulator(Simulator):
         number_of_stocks = self.prices.shape[1]
         current_step = int(self.time/self.max_step)
         if self.time == 0.0:
-            self.current_batch = random.randint(0, self.number_of_batches-1)
+            if self.test:
+                import psutil
+                p = []
+                for proc in psutil.process_iter():
+                    if proc.name() == 'python':
+                        p.append(proc.pid)
+                p = p[-16:]
+                self.current_batch = p.index(os.getpid())
+            else:
+                self.current_batch = random.randint(0, self.number_of_batches-1)
             self.state[:, 4+2*number_of_stocks: 4+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step]
             self.state[:, 4+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
         if self.system.system_type == "discrete_stoch":
@@ -117,7 +133,11 @@ class Historical_Simulator(Simulator):
             raise ValueError("Invalid system description")
         
 
-def klines(market = 'BTCUSDT', tick_interval = '30m', startDay = "03/10/2023", endDay="03/04/2024"):
+def klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], tick_interval = '30m', startDay = "01/01/2022", endDay="01/03/2024",):
+    if os.path.isfile('../../../../historical_data.npy'):
+        final_data = np.load('../../../../historical_data.npy')
+        return final_data
+
     seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
     def convert_to_seconds(s):
         return int(s[:-1]) * seconds_per_unit[s[-1]]
@@ -125,23 +145,25 @@ def klines(market = 'BTCUSDT', tick_interval = '30m', startDay = "03/10/2023", e
     endTime = int(datetime.strptime(endDay,"%d/%m/%Y").timestamp() + 10799)
     interval = convert_to_seconds(tick_interval)
     n = (endTime - startTime)/interval
-    for i in range(math.ceil(n/1000)):
-        start = startTime +i*interval*1000
-        end = min(start+interval*1000, endTime)
-        url = 'https://api.binance.com/api/v3/klines?symbol='+market+'&interval='+tick_interval+'&startTime='+ str(start*1000)+'&endTime='+str(end*1000)+'&limit=1000'
-        data_one = pd.DataFrame(requests.get(url).json())[[0, 4]]
-        data_one.rename(columns={0: 'timestamp', 4: 'close_price'}, inplace=True)
-        data_one.sort_values(by=['timestamp'], inplace=True)
-        if i==0:
-            data = data_one
-        else:
-            data = pd.concat([data, data_one], ignore_index=True)
-    data['timestamp'] = pd.to_datetime(data['timestamp']/1000, unit='s')
-    data['close_price'] = pd.to_numeric(data['close_price'])
-    data['returns'] = (data.close_price -data.close_price.shift(1))/ data.close_price.shift(1)
-    data = data.iloc[1:].reset_index(drop = True)
-    data = np.array(data[['close_price']])
-    return data
-
-
-prices = np.concatenate([klines(market = 'BTCUSDT'), klines(market = 'ETHUSDT'), klines(market = 'SOLUSDT')], axis = 1)
+    datas = []
+    for market in markets:
+        for i in range(math.ceil(n/1000)):
+            start = startTime +i*interval*1000
+            end = min(start+interval*1000, endTime)
+            url = 'https://api.binance.com/api/v3/klines?symbol='+market+'&interval='+tick_interval+'&startTime='+ str(start*1000)+'&endTime='+str(end*1000)+'&limit=1000'
+            data_one = pd.DataFrame(requests.get(url).json())[[0, 4]]
+            data_one.rename(columns={0: 'timestamp', 4: 'close_price'}, inplace=True)
+            data_one.sort_values(by=['timestamp'], inplace=True)
+            if i==0:
+                data = data_one
+            else:
+                data = pd.concat([data, data_one], ignore_index=True)
+        data['timestamp'] = pd.to_datetime(data['timestamp']/1000, unit='s')
+        data['close_price'] = pd.to_numeric(data['close_price'])
+        data['returns'] = (data.close_price -data.close_price.shift(1))/ data.close_price.shift(1)
+        data = data.iloc[1:].reset_index(drop = True)
+        data = np.array(data[['close_price']])
+        datas.append(data)
+    final_data = np.concatenate(datas, axis = 1)
+    np.save('../../../../historical_data.npy', final_data)
+    return final_data

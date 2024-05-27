@@ -1,4 +1,4 @@
-_target_: src.simulator.Historical_Simulator
+_target_: src.simulator.Simulator
 
 # Define below the constructor kwargs
 system: ~ system

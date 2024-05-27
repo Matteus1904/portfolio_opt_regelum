@@ -16,7 +16,7 @@ is_value_function: True
 is_on_policy: True
 optimizer_config:
   _target_: regelum.optimizable.core.configs.TorchOptimizerConfig
-  n_epochs: 20
+  n_epochs: 5
   data_buffer_iter_bathes_kwargs:
     batch_sampler: = regelum.data_buffers.batch_sampler.RollingBatchSampler
     dtype: = torch.FloatTensor

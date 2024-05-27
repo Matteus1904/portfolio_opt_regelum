@@ -4,8 +4,8 @@
 defaults:
   - system: portfolio_market_system
   - policy: joint_policy_vpg
-  - simulator: simulator
-  - scenario: scenario
+  - simulator: simulator_test
+  - scenario: scenario_test
   - common: common
   - portfolio_critic: portfolio_critic
   - market_critic: market_critic

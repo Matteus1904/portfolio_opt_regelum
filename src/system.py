@@ -170,14 +170,14 @@ class Portfolio(System):
     def __init__(self, dim_state, action_bounds, transaction_cost):
         """Define number of stocks in the system"""
         self._dim_state = dim_state
-        self.number_of_shares = (dim_state -3)//2
-        self._dim_inputs = self.number_of_shares 
-        self._dim_observation = self.number_of_shares +1
+        self.number_of_shares = (dim_state -4)//2
+        self._dim_inputs = self.number_of_shares
+        self._dim_observation = self.number_of_shares +2
         if action_bounds is None:
             self._action_bounds = [[-1, 1]]*self._dim_inputs
         else:
             self._action_bounds = action_bounds
-        self._state_naming = ['cash [USD]', 'prev_cash [USD]'] + ['first_momentum'] + ['second_momontum'] + [f'current_volume_{i}' for i in range(self._dim_inputs)]
+        self._state_naming = ['cash [USD]', 'prev_cash [USD]'] + ['first_momentum'] + ['second_momentum'] + [f'current_volume_{i}' for i in range(self._dim_inputs)]
         self._state_naming += [f'prev_volume_{i}' for i in range(self._dim_inputs)]
         self._observation_naming = ['cash share'] + [f'share_{i}' for i in range(self._dim_inputs)] + ['cash delta']
         self._inputs_naming =[f'delta_volume_{i}' for i in range(self._dim_inputs)]
