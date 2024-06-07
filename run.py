@@ -20,13 +20,7 @@ def launch_train(cfg):
     torch.save(scenario.market_critic.model.state_dict(), './market_critic.pt')
     torch.save(scenario.policy.market_model.state_dict(), './market_actor.pt')
 
-@rg.main(config_path="presets", config_name="main_test")
-def launch_test(cfg):
-    scenario = ~cfg.scenario  # instantiate the scenario from config
-    scenario.run()  # run it
-
 if __name__ == "__main__":
     launch_pretrain()
     launch_train()
-    launch_test()
     pass

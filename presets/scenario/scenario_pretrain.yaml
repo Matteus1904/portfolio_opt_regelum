@@ -12,8 +12,8 @@ market_running_objective_model:
   weights: = regelum.utils.rg.array([1.0] + [0.0]*(${common.number_of_stocks} * ( ${common.number_of_stocks} + 5 ) // 2 ))
 discount_factor: $ common.discount_factor
 sampling_time: $ common.sampling_time
-N_iterations: 2000
-iters_to_switch_opt_agent: 10
+N_iterations: 1000
+iters_to_switch_opt_agent: 1001
 
 
 

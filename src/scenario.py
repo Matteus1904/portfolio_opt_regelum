@@ -1,4 +1,4 @@
-
+from regelum.utils import Clock, AwaitedParameter, calculate_value
 from regelum.__internal.base import apply_callbacks
 
 from regelum.scenario import RLScenario
@@ -181,3 +181,53 @@ class GameScenario(RLScenario):
                 scenarios[episode_id - 1].run_episode(episode_id, iteration_id),
             )
         )
+
+    def run_episode(self, episode_counter, iteration_counter):
+        self.episode_counter = episode_counter
+        self.iteration_counter = iteration_counter
+        while self.sim_status != "episode_ended":
+            self.sim_status = self.step(episode_counter, iteration_counter)
+        return self.data_buffer
+    
+    def step(self, episode_counter, iteration_counter):
+        if isinstance(self.action_init, AwaitedParameter) and isinstance(
+            self.state_init, AwaitedParameter
+        ):
+            (
+                self.state_init,
+                self.action_init,
+            ) = self.simulator.get_init_state_and_action()
+
+        if (not self.is_episode_ended) and (self.value <= self.value_threshold):
+            (
+                self.time,
+                self.state,
+                self.observation,
+                self.simulation_metadata,
+            ) = self.simulator.get_sim_step_data()
+
+            self.delta_time = (
+                self.time - self.time_old
+                if self.time_old is not None and self.time is not None
+                else 0
+            )
+            self.time_old = self.time
+            if len(list(self.constraint_parser)) > 0:
+                self.constraint_parameters = self.constraint_parser.parse_constraints(
+                    simulation_metadata=self.simulation_metadata
+                )
+                self.substitute_constraint_parameters(**self.constraint_parameters)
+            estimated_state = self.observer.get_state_estimation(
+                self.time, self.observation, self.action
+            )
+
+            self.action = self.compute_action_sampled(
+                self.time,
+                estimated_state,
+                self.observation,
+            )
+            self.simulator.receive_action(self.action)
+            self.is_episode_ended = self.simulator.do_sim_step(episode_counter, iteration_counter) == -1
+            return "episode_continues"
+        else:
+            return "episode_ended"

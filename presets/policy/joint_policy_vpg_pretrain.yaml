@@ -36,6 +36,6 @@ is_normalize_advantages: True
 gae_lambda: 0.95
 N_episodes: 16
 sampling_time: $ common.sampling_time
-type_of_adversary: strategic
-fixed_market_actions: = regelum.utils.rg.array([0.1]*(${common.number_of_stocks} * ( ${common.number_of_stocks} +3 ) // 2)).reshape(1, -1)
+type_of_adversary: fixed
+fixed_market_actions: = regelum.utils.rg.array([-0.1, 0.0, 0.1, 0.1, 0.2, 0.3] + [0.1]*(${common.number_of_stocks} * ( ${common.number_of_stocks} -1 ) // 2)).reshape(1, -1)
 pretrain: True
