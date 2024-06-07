@@ -11,8 +11,9 @@ import numpy as np
 import random
 import os
 
+
 class Simulator(Simulator):
-    def do_sim_step(self):
+    def do_sim_step(self, episode_counter, iteration_counter):
         """Do one simulation step and update current simulation data (time, system state and output)."""
         if self.system.system_type == "discrete_stoch":
             if self.time <= self.time_final:
@@ -66,41 +67,30 @@ class Historical_Simulator(Simulator):
             self.action_init = self.initialize_init_action()
         else:
             self.action_init = action_init
-
         self.time = 0.0
         self.state = self.state_init
         self.observation_init = self.observation = self.get_observation(
             time=self.time, state=self.state_init, inputs=self.action_init
         )
-
         self.max_step = max_step
         self.atol = atol
         self.rtol = rtol
         self.first_step = first_step
         self.number_of_steps = int(self.time_final/self.max_step)
-        self.prices = klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], startDay = "01/01/2022", endDay="01/05/2024")
+        self.prices = klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], startDay = "01/05/2021", endDay="01/05/2024")
         self.test = test
-        if test:
-            self.prices = self.prices[-int(time_final/max_step)*16-1:]
-        else:
-            self.prices = self.prices[:-int(time_final/max_step)*16-1]
+        # if test:
+        #     self.prices = self.prices[-int(time_final/max_step)*16-1:]
+        # else:
+        #     self.prices = self.prices[:-int(time_final/max_step)*16-1]
         self.number_of_batches = self.prices.shape[0]//self.number_of_steps
 
-    def do_sim_step(self):
+    def do_sim_step(self, episode_counter, iteration_counter):
         """Do one simulation step and update current simulation data (time, system state and output)."""
         number_of_stocks = self.prices.shape[1]
         current_step = int(self.time/self.max_step)
         if self.time == 0.0:
-            if self.test:
-                import psutil
-                p = []
-                for proc in psutil.process_iter():
-                    if proc.name() == 'python':
-                        p.append(proc.pid)
-                p = p[-16:]
-                self.current_batch = p.index(os.getpid())
-            else:
-                self.current_batch = random.randint(0, self.number_of_batches-1)
+            self.current_batch = (iteration_counter - 1)*16 + (episode_counter - 1)
             self.state[:, 4+2*number_of_stocks: 4+3*number_of_stocks] = self.prices[self.current_batch*self.number_of_steps + current_step]
             self.state[:, 4+3*number_of_stocks: ] = self.prices[self.current_batch*self.number_of_steps + current_step]
         if self.system.system_type == "discrete_stoch":
@@ -133,7 +123,7 @@ class Historical_Simulator(Simulator):
             raise ValueError("Invalid system description")
         
 
-def klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], tick_interval = '30m', startDay = "01/01/2022", endDay="01/03/2024",):
+def klines(markets = ['AAVEUSDT','SOLUSDT','LTCUSDT'], tick_interval = '30m', startDay = "01/01/2022", endDay="01/03/2024"):
     if os.path.isfile('../../../../historical_data.npy'):
         final_data = np.load('../../../../historical_data.npy')
         return final_data
